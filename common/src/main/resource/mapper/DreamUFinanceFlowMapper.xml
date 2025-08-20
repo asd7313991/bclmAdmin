@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUFinanceFlowMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUFinanceFlowDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="typeDetail" column="type_detail" jdbcType="INTEGER"/>
+        <result property="platformId" column="platform_id" jdbcType="INTEGER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="money" column="money" jdbcType="DOUBLE"/>
+        <result property="redbag" column="redbag" jdbcType="DOUBLE"/>
+        <result property="moneyLeft" column="money_left" jdbcType="DOUBLE"/>
+        <result property="redbagLeft" column="redbag_left" jdbcType="DOUBLE"/>
+        <result property="cOrderId" column="c_order_id" jdbcType="VARCHAR"/>
+        <result property="ioOrderId" column="io_order_id" jdbcType="INTEGER"/>
+        <result property="couponsId" column="coupons_id" jdbcType="INTEGER"/>
+        <result property="couponsValue" column="coupons_value" jdbcType="DOUBLE"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,user_id,type,
+        type_detail,platform_id,remark,
+        money,redbag,money_left,
+        redbag_left,c_order_id,io_order_id,
+        coupons_id,coupons_value,create_time
+    </sql>
+</mapper>

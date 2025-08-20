@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUFinanceIoMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUFinanceIoDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="typeDetail" column="type_detail" jdbcType="INTEGER"/>
+        <result property="platformId" column="platform_id" jdbcType="INTEGER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="money" column="money" jdbcType="DOUBLE"/>
+        <result property="commission" column="commission" jdbcType="DOUBLE"/>
+        <result property="redbag" column="redbag" jdbcType="DOUBLE"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="selfOrderId" column="self_order_id" jdbcType="VARCHAR"/>
+        <result property="thirdOrderId" column="third_order_id" jdbcType="VARCHAR"/>
+        <result property="submitOrderId" column="submit_order_id" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="promotionType" column="promotion_type" jdbcType="TINYINT"/>
+        <result property="deductionMoney" column="deduction_money" jdbcType="DOUBLE"/>
+        <result property="src" column="src" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,user_id,type,
+        type_detail,platform_id,remark,
+        money,commission,redbag,
+        status,self_order_id,third_order_id,
+        submit_order_id,create_time,update_time,
+        promotion_type,deduction_money,src
+    </sql>
+    <select id="selectPageNew" resultType="org.example.vo.dream.financeIo.DreamUFinanceIoVO">
+        select dufi.*,duu.user_name as userName,ddt.name as payTypeName
+        from dream_u_finance_io dufi left join dream_u_user duu on dufi.user_id = duu.id
+        left join dream_deposit_type ddt  on ddt.id = dufi.pay_type_id
+        <where>
+            <if test="pageVo.userName != null">
+                and duu.user_name like concat('%',#{pageVo.userName},'%')
+            </if>
+            <if test="pageVo.userId!= null">
+                and duu.id = #{pageVo.userId}
+            </if>
+            <if test="pageVo.userType!= null">
+                and duu.type = #{pageVo.userType}
+            </if>
+            <if test="pageVo.id != null">
+                and dufi.id = #{pageVo.id}
+            </if>
+            <if test="pageVo.type != null">
+                and dufi.type = #{pageVo.type}
+            </if>
+<!--            <if test="pageVo.userId != null">-->
+<!--                and dufi.user_id = #{pageVo.userId}-->
+<!--            </if>-->
+            <if test="pageVo.status != null">
+                and dufi.status = #{pageVo.status}
+            </if>
+            <if test="pageVo.src != null">
+                and dufi.src = #{pageVo.src}
+            </if>
+            <if test="pageVo.days != null">
+                and dufi.create_time  <![CDATA[ >=  ]]> #{pageVo.days}
+            </if>
+            <if test="pageVo.createTime != null">
+                and dufi.create_time  <![CDATA[ >=  ]]>  #{pageVo.createTime[0]} and dufi.create_time  <![CDATA[ < ]]>
+                #{pageVo.createTime[1]}
+            </if>
+        </where>
+
+        order by dufi.create_time desc
+
+    </select>
+
+    <select id="sumAmountGroupBy" resultType="org.example.vo.dream.financeIo.DreamUFinanceIoAmountVO">
+        SELECT `type` type, ifnull(sum(act_amount),0) as amount
+        from dream_u_finance_io
+        WHERE `status` = 2 AND `type` in (10, 20)
+        <if test="reqVO.createTime !=null">
+            and create_time  <![CDATA[ >=  ]]>  #{reqVO.createTime[0]} and create_time  <![CDATA[ < ]]>
+            #{reqVO.createTime[1]}
+        </if>
+        GROUP BY `type`
+        ORDER BY `type`
+    </select>
+
+    <select id="sumAmountPerDayGroupBy" resultType="org.example.vo.dream.financeIo.DreamUFinanceIoAmountPerDayVO">
+        SELECT `type` type, DATE_FORMAT(create_time, '%Y-%m-%d') as perDate, count(distinct user_id) AS counts,sum(act_amount) as amount
+        FROM dream_u_finance_io
+        WHERE `status` = 2
+          AND `type` in (10, 20)
+          and create_time >= CURDATE() - INTERVAL #{reqVO.days} DAY
+        GROUP BY perDate, `type`
+        ORDER BY perDate desc,`type` asc
+    </select>
+</mapper>

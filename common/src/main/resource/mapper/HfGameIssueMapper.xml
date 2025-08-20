@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.hf.HfGameIssueMapper">
+    <resultMap id="BaseResultMap" type="org.example.po.dream.hf.HfGameIssueDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="issuecode" column="issueCode" jdbcType="VARCHAR"/>
+        <result property="lotteryid" column="lotteryId" jdbcType="VARCHAR"/>
+        <result property="salestarttime" column="saleStartTime" jdbcType="TIMESTAMP"/>
+        <result property="saleendtime" column="saleEndTime" jdbcType="TIMESTAMP"/>
+        <result property="opendrawtime" column="openDrawTime" jdbcType="TIMESTAMP"/>
+        <result property="numberrecord" column="numberRecord" jdbcType="VARCHAR"/>
+        <result property="sumrecord" column="sumRecord" jdbcType="VARCHAR"/>
+        <result property="winrecord" column="winRecord" jdbcType="VARCHAR"/>
+        <result property="preendissue" column="preEndIssue" jdbcType="INTEGER"/>
+        <result property="lastissuecode" column="lastIssueCode" jdbcType="VARCHAR"/>
+        <result property="issuestatus" column="issueStatus" jdbcType="INTEGER"/>
+        <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,issueCode,lotteryId,
+        saleStartTime,saleEndTime,openDrawTime,
+        numberRecord,sumRecord,winRecord,
+        preEndIssue,lastIssueCode,issueStatus,
+        createTime,updateTime
+    </sql>
+
+
+    <select id="findcurIssue" resultMap="BaseResultMap">
+        select *
+        from hf_game_issue
+        where issueStatus = 1
+          and lotteryId = #{lotteryId} limit 1
+    </select>
+
+    <select id="findHistoryIssue" resultMap="BaseResultMap">
+        select * from hf_game_issue where issueStatus > 2
+        and lotteryId= #{lotteryId}
+        <if test="issueCode != null">
+            and issueCode = #{issueCode}
+        </if>
+        order by issueCode desc
+        limit 2000
+    </select>
+
+    <update id="drawGameIssue">
+        update hf_game_issue
+        set numberRecord=#{numberRecord},
+            sumRecord=#{sumRecord},
+            winRecord=#{winRecord},
+            openDrawTime=now(),
+            issueStatus=3
+        where issueCode = #{issue}
+          and issueStatus = 2
+    </update>
+
+
+    <update id="issueOpenClose">
+        update hf_game_issue
+        set issueStatus=#{issueStatus}
+        where lotteryId = #{lotteryId}
+          and issueCode = #{issueCode}
+    </update>
+
+
+    <select id="findIssueByStatus" resultMap="BaseResultMap">
+        select *
+        from hf_game_issue
+        where issueStatus = #{issueStatus}
+          and lotteryId = #{lotteryId} limit 1
+    </select>
+</mapper>

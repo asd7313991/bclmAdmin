@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUFinanceAccMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUFinanceAccDO">
+        <id property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="depositMoney" column="deposit_money" jdbcType="DOUBLE"/>
+        <result property="sysDepopsitMoney" column="sys_depopsit_money" jdbcType="DOUBLE"/>
+        <result property="drawMoney" column="draw_money" jdbcType="DOUBLE"/>
+        <result property="sysDrawMoney" column="sys_draw_money" jdbcType="DOUBLE"/>
+        <result property="payMoney" column="pay_money" jdbcType="DOUBLE"/>
+        <result property="marginMoney" column="margin_money" jdbcType="DOUBLE"/>
+        <result property="commissionMoney" column="commission_money" jdbcType="DOUBLE"/>
+        <result property="profitMoney" column="profit_money" jdbcType="DOUBLE"/>
+        <result property="brokerageMoney" column="brokerage_money" jdbcType="DOUBLE"/>
+        <result property="depositRedbag" column="deposit_redbag" jdbcType="DOUBLE"/>
+        <result property="consumeRedbag" column="consume_redbag" jdbcType="DOUBLE"/>
+        <result property="eraseRadbag" column="erase_radbag" jdbcType="DOUBLE"/>
+        <result property="exchangeMoney" column="exchange_money" jdbcType="DOUBLE"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        user_id
+        ,deposit_money,sys_depopsit_money,
+        draw_money,sys_draw_money,pay_money,
+        margin_money,commission_money,profit_money,
+        brokerage_money,deposit_redbag,consume_redbag,
+        erase_radbag,exchange_money,create_time,
+        update_time
+    </sql>
+</mapper>

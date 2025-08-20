@@ -1,0 +1,93 @@
+<configuration>
+    <property name="APP_NAME" value="app"/>
+    <property name="LOG_HOME" value="./logs" />
+
+    <!-- 引用 Spring Boot 的 logback 基础配置 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <!-- 增加如下的TLog MDC Listener -->
+    <contextListener class="com.yomahub.tlog.core.enhance.logback.TLogLogbackTTLMdcListener"/>
+    <!-- 变量 project.info.base-package，基础业务包 -->
+    <springProperty scope="context" name="jo.info.base-package" source="org.example"/>
+    <!-- 格式化输出：%d 表示日期，%X{tid} SkWalking 链路追踪编号，%thread 表示线程名，%-5level：级别从左显示 5 个字符宽度，%msg：日志消息，%n是换行符 -->
+    <property name="PATTERN_DEFAULT" value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} | %highlight(${LOG_LEVEL_PATTERN:-%5p} ${PID:- }) | %boldYellow(%thread [%tid]) %boldGreen(%-40.40logger{39}) | %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <!-- 控制台 Appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">　　　　　
+        <!--这里替换成AspectLogbackEncoder-->
+        <encoder class="com.yomahub.tlog.core.enhance.logback.AspectLogbackEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %X{tl} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 文件 Appender -->
+    <!-- 参考 Spring Boot 的 file-appender.xml 编写 -->
+    <appender name="FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--这里替换成AspectLogbackEncoder-->
+        <encoder class="com.yomahub.tlog.core.enhance.logback.AspectLogbackEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %X{tl} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <!-- 日志文件名 -->
+        <file>${LOG_HOME}/${APP_NAME}.log}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/${APP_NAME}.log.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <maxFileSize>1000MB</maxFileSize>
+        </rollingPolicy>
+    </appender>
+    <!-- 异步写入日志，提升性能 -->
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志。默认的，如果队列的 80% 已满,则会丢弃 TRACT、DEBUG、INFO 级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度，该值会影响性能。默认值为 256 -->
+        <queueSize>256</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+<!--    &lt;!&ndash; SkyWalking GRPC 日志收集，实现日志中心。注意：SkyWalking 8.4.0 版本开始支持 &ndash;&gt;-->
+<!--    <appender name="GRPC" class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.log.GRPCLogClientAppender">-->
+<!--        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">-->
+<!--            <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">-->
+<!--                <pattern>${PATTERN_DEFAULT}</pattern>-->
+<!--            </layout>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+
+    <!-- 本地环境 -->
+    <springProfile name="local">
+        <root level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ASYNC"/>  <!-- 本地环境下，如果不想打印日志，可以注释掉本行 -->
+        </root>
+        <logger name="org.apache" level="INFO"/>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mybatis" level="debug"/>
+        <logger name="io.netty" level="INFO"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework.boot" level="INFO"/>
+        <logger name="org.springframework.web" level="INFO"/>
+    </springProfile>
+    <springProfile name="test">
+        <root level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ASYNC"/>
+        </root>
+        <logger name="org.apache" level="INFO"/>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mybatis" level="debug"/>
+        <logger name="io.netty" level="INFO"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework.boot" level="INFO"/>
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="ma.glasnost.orika" level="INFO"/>
+    </springProfile>
+    <!-- 其它环境 -->
+    <springProfile name="stage,prod,default">
+        <root level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ASYNC"/>
+<!--            <appender-ref ref="GRPC"/>-->
+        </root>
+    </springProfile>
+
+</configuration>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow>
+
+    <chain name="loginChain">
+        THEN(loginNode);
+    </chain>
+
+    <chain name="loginErrorChain">
+        THEN(loginErrorNode);
+    </chain>
+
+    <chain name="register">
+        THEN(registerNode);
+    </chain>
+
+
+    <chain name="financeAcc">
+        SWITCH(financeAcc).to(depositNode,withdrawNode);
+    </chain>
+</flow>

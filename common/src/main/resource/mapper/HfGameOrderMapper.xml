@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.hf.HfGameOrderMapper">
+    <resultMap id="BaseResultMap" type="org.example.po.dream.hf.HfGameOrderDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="issuecode" column="issueCode" jdbcType="VARCHAR"/>
+        <result property="lotteryid" column="lotteryId" jdbcType="VARCHAR"/>
+        <result property="saletime" column="saleTime" jdbcType="TIMESTAMP"/>
+        <result property="calculatewintime" column="calculateWinTime" jdbcType="TIMESTAMP"/>
+        <result property="ordercode" column="orderCode" jdbcType="VARCHAR"/>
+        <result property="totalamount" column="totalAmount" jdbcType="INTEGER"/>
+        <result property="orderstatus" column="orderStatus" jdbcType="TINYINT"/>
+        <result property="numberrecord" column="numberRecord" jdbcType="VARCHAR"/>
+        <result property="gameplanid" column="gamePlanId" jdbcType="INTEGER"/>
+        <result property="gameplandetailid" column="gamePlanDetailId" jdbcType="INTEGER"/>
+        <result property="userid" column="userId" jdbcType="INTEGER"/>
+        <result property="accwin" column="accWin" jdbcType="DOUBLE"/>
+        <result property="prewinnum" column="preWinNum" jdbcType="DOUBLE"/>
+        <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,issueCode,lotteryId,
+        saleTime,calculateWinTime,orderCode,
+        totalAmount,orderStatus,numberRecord,
+        gamePlanId,gamePlanDetailId,userId,
+        accWin,preWinNum,createTime,
+        updateTime
+    </sql>
+
+
+    <select id="findcurIssue" resultType="org.example.po.dream.hf.HfGameIssueDO">
+        select *
+        from hf_game_issue
+        where issueStatus = 1
+          and lotteryId = #{lotteryId}
+    </select>
+
+    <select id="findHistoryIssue" resultType="org.example.po.dream.hf.HfGameIssueDO">
+        select numberRecord, issueCode
+        from hf_game_issue
+        where issueStatus > 2
+          and lotteryId = #{lotteryId}
+        ORDER BY issueCode desc limit 2000
+    </select>
+
+
+    <select id="getOrderList" resultType="org.example.po.dream.hf.HfGameOrderDO">
+        select totalAmount,saleTime,orderStatus,preWinNum,userId,accWin,id as orderCode,issueCode,numberRecord from
+        hf_game_order where
+        lotteryId= #{lotteryId} and userId=#{userId}
+        <if test="status == 0">
+            and orderStatus in (1,2,3)
+        </if>
+        <if test="status > 0">
+            and orderStatus=#{status}
+        </if>
+        order by id desc limit 2000
+    </select>
+
+    <select id="getOrderById" resultType="org.example.po.dream.hf.HfGameOrderDO">
+        SELECT t1.id,
+               t1.orderCode,
+               t1.lotteryId,
+               t1.issueCode,
+               t1.totalAmount,
+               t1.numberRecord,
+               t1.gamePlanId,
+               t1.saleTime,
+               t1.calculateWinTime,
+               t1.orderStatus,
+               t1.accWin
+                ,
+               (select CONCAT(numberRecord, '=', sumRecord)
+                from hf_game_issue
+                where t1.issueCode = issueCode) issueResult
+        from hf_game_order t1
+        where t1.id = #{id}
+          and t1.userId = #{userId}
+    </select>
+
+    <select id="getOrderAnalysis" resultType="org.example.vo.hf.GameAnalysisVo">
+        select left (t.saleTime, 10) analDate, (sum (t.accWin)- sum (t.totalAmount)) as analAomout
+        from hf_game_order t
+        where t.orderStatus
+            >1
+          and t.userId=#{userId}
+          and t.lotteryId= #{lotteryId}
+        group by left (t.saleTime, 10)
+        order by left (t.saleTime, 10) desc
+            limit 30
+    </select>
+
+    <update id="updateGameOrder">
+        update hf_game_order set accWin=totalAmount*preWinNum,orderStatus=2,calculateWinTime=now()
+        where lotteryId= #{lotteryId} and issueCode=#{issueCode} and numberRecord in
+        <foreach collection="winRecords" item="name" index="index" open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+    </update>
+
+    <update id="updateGameOrderByunprize">
+        update hf_game_order set orderStatus=3,calculateWinTime=now()
+        where lotteryId= #{lotteryId} and issueCode=#{issueCode} and numberRecord not in
+        <foreach collection="winRecords" item="name" index="index" open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+    </update>
+
+    <select id="selectGamePlanByPrize" resultMap="BaseResultMap">
+        select t1.accWin,t1.gamePlanId,t2.planType,t2.winAmount,t2.winRate
+        ,t2.stopMode,t2.soldAmount,t1.userId,t2.totamount totalAmount
+        from hf_game_order t1,hf_game_plan t2
+        where t1.gamePlanId is not null and t1.gamePlanId = t2.id
+        and t1.lotteryId= #{lotteryId} and t1.issueCode=#{issueCode}
+        and t1.numberRecord in
+        <foreach collection="winRecords" item="name" index="index" open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+    </select>
+
+
+    <select id="getSendIssue" resultType="org.example.po.dream.hf.HfGameOrderDO">
+        select userId, accWin, id
+        from hf_game_order
+        where orderStatus = 2
+          and lotteryId = #{lotteryId}
+          and issueCode = #{issueCode}
+    </select>
+</mapper>

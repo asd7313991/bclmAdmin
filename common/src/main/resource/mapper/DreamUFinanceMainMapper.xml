@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUFinanceMainMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUFinanceMainDO">
+        <id property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="moneyUsable" column="money_usable" jdbcType="DOUBLE"/>
+        <result property="moneyFrozen" column="money_frozen" jdbcType="DOUBLE"/>
+        <result property="moneyDrawUsable" column="money_draw_usable" jdbcType="DOUBLE"/>
+        <result property="margin" column="margin" jdbcType="DOUBLE"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="salt" column="salt" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        user_id
+        ,money_usable,money_frozen,
+        money_draw_usable,margin,create_time,
+        update_time,password,salt
+    </sql>
+
+
+    <select id="selectPageByVo" resultMap="BaseResultMap">
+        select dufm.* ,duu.user_name as username from dream_u_finance_main dufm left join `dream_u_user` duu on duu.`id`
+        = dufm.`user_id`
+        <where>
+            <if test="vo.userId != null">
+                and user_id = #{vo.userId}
+            </if>
+            <if test="vo.moneyUsable != null">
+                <![CDATA[
+            and money_usable >= #{vo.moneyUsable[0]} and money_usable <  #{vo.moneyUsable[1]}  ]]>
+            </if>
+            <if test="vo.moneyFrozen != null">
+                <![CDATA[   and money_frozen >= #{vo.moneyFrozen[0]} and money_frozen <  #{vo.moneyFrozen[1]} ]]>
+            </if>
+            <if test="vo.moneyDrawUsable != null">
+                <![CDATA[   and money_draw_usable >= #{vo.moneyDrawUsable[0]} and money_draw_usable <  #{vo.moneyDrawUsable[1]} ]]>
+            </if>
+            <if test="vo.margin != null">
+                <![CDATA[   and margin >= #{vo.margin[0]} and margin <  #{vo.margin[1]} ]]>
+            </if>
+        </where>
+        order by dufm.update_time desc
+    </select>
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUUserBankcardMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUUserBankcardDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="idCard" column="id_card" jdbcType="VARCHAR"/>
+        <result property="idStatus" column="id_status" jdbcType="INTEGER"/>
+        <result property="bankId" column="bank_id" jdbcType="INTEGER"/>
+        <result property="issuingBank" column="issuing_bank" jdbcType="INTEGER"/>
+        <result property="issuingBankName" column="issuing_bank_name" jdbcType="VARCHAR"/>
+        <result property="cardNumber" column="card_number" jdbcType="VARCHAR"/>
+        <result property="cardPhone" column="card_phone" jdbcType="VARCHAR"/>
+        <result property="cardState" column="card_state" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="bindStatus" column="bind_status" jdbcType="INTEGER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,user_id,real_name,
+        id_card,id_status,bank_id,
+        issuing_bank,issuing_bank_name,card_number,
+        card_phone,card_state,create_time,
+        update_time,bind_status,remark
+    </sql>
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.system.db.mysql.mapper.system.UserRoleMapper">
+
+
+
+    <select id="selectByUserId" resultType="org.example.system.db.mysql.po.system.RoleDO">
+        SELECT distinct sr.*
+        from system_role sr
+                 INNER JOIN system_user_role sur on sur.role_id = sr.id
+        where sr.`status` = 0
+          and sur.user_id = #{userId}
+    </select>
+</mapper>

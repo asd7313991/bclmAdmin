@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUUserMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUUserDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userPhone" column="user_phone" jdbcType="VARCHAR"/>
+        <result property="userPass" column="user_pass" jdbcType="VARCHAR"/>
+        <result property="passSalt" column="pass_salt" jdbcType="VARCHAR"/>
+        <result property="passEncryptTimes" column="pass_encrypt_times" jdbcType="INTEGER"/>
+        <result property="loginErrorNum" column="login_error_num" jdbcType="INTEGER"/>
+        <result property="lastLoginTime" column="last_login_time" jdbcType="TIMESTAMP"/>
+        <result property="userSex" column="user_sex" jdbcType="INTEGER"/>
+        <result property="userEmail" column="user_email" jdbcType="VARCHAR"/>
+        <result property="userPortrait" column="user_portrait" jdbcType="VARCHAR"/>
+        <result property="userSign" column="user_sign" jdbcType="VARCHAR"/>
+        <result property="bisSetNickname" column="bis_set_nickname" jdbcType="INTEGER"/>
+        <result property="agencyId" column="agency_id" jdbcType="INTEGER"/>
+        <result property="promoterId" column="promoter_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="deviceId" column="device_id" jdbcType="VARCHAR"/>
+        <result property="platform" column="platform" jdbcType="INTEGER"/>
+        <result property="registrationIp" column="registration_ip" jdbcType="VARCHAR"/>
+        <result property="loginIp" column="login_ip" jdbcType="VARCHAR"/>
+        <result property="source" column="source" jdbcType="VARCHAR"/>
+        <result property="land" column="land" jdbcType="VARCHAR"/>
+        <result property="introduction" column="introduction" jdbcType="VARCHAR"/>
+        <result property="birthday" column="birthday" jdbcType="VARCHAR"/>
+        <result property="sourceBackup" column="source_backup" jdbcType="VARCHAR"/>
+        <result property="wxOpenid" column="wx_openId" jdbcType="VARCHAR"/>
+        <result property="age" column="age" jdbcType="INTEGER"/>
+        <result property="certificationStatus" column="certification_status" jdbcType="INTEGER"/>
+        <result property="loginNum" column="login_num" jdbcType="INTEGER"/>
+        <result property="longitude" column="longitude" jdbcType="DOUBLE"/>
+        <result property="latitude" column="latitude" jdbcType="DOUBLE"/>
+        <result property="userType" column="user_type" jdbcType="INTEGER"/>
+        <result property="inviteUserId" column="invite_user_id" jdbcType="INTEGER"/>
+        <result property="moneyReward" column="money_reward" jdbcType="TINYINT"/>
+        <result property="rewardTime" column="reward_time" jdbcType="TIMESTAMP"/>
+        <result property="lastSensitizeTime" column="last_sensitize_time" jdbcType="TIMESTAMP"/>
+        <result property="wxName" column="wx_name" jdbcType="VARCHAR"/>
+        <result property="rewardDeviceId" column="reward_device_id" jdbcType="VARCHAR"/>
+        <result property="customId" column="custom_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,user_name,user_phone,
+        user_pass,pass_salt,pass_encrypt_times,
+        login_error_num,last_login_time,user_sex,
+        user_email,user_portrait,user_sign,
+        bis_set_nickname,agency_id,promoter_id,
+        create_time,status,device_id,
+        platform,registration_ip,login_ip,
+        source,land,introduction,
+        birthday,source_backup,wx_openId,
+        age,certification_status,login_num,
+        longitude,latitude,user_type,
+        invite_user_id,money_reward,reward_time,
+        last_sensitize_time,wx_name,reward_device_id,
+        custom_id
+    </sql>
+
+    <select id="countUserGroupBy" resultType="org.example.vo.dream.user.DreamUUserCountVO">
+        SELECT user_type type, count(id) AS counts
+        FROM dream_u_user
+        WHERE user_type in (0,1)
+        <if test="reqVO.createTime != null">
+            and create_time  <![CDATA[ >=  ]]>  #{reqVO.createTime[0]} and create_time  <![CDATA[ < ]]>
+            #{reqVO.createTime[1]}
+        </if>
+        GROUP BY user_type
+        ORDER BY user_type
+    </select>
+
+    <select id="countUserPerDayGroupBy" resultType="org.example.vo.dream.user.DreamUUserCountPerDayVO">
+        SELECT user_type type, DATE_FORMAT(create_time, '%Y-%m-%d') as perDate, count(id) AS counts
+        FROM dream_u_user
+        WHERE user_type in (0, 1)
+          and create_time >= CURDATE() - INTERVAL #{reqVO.days} DAY -- 近七天的日期范围
+        GROUP BY perDate, user_type
+        ORDER BY user_type, perDate
+    </select>
+
+</mapper>

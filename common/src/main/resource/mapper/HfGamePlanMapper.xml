@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.hf.HfGamePlanMapper">
+    <resultMap id="BaseResultMap" type="org.example.po.dream.hf.HfGamePlanDO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="lotteryid" column="lotteryId" jdbcType="VARCHAR"/>
+        <result property="startisuuecode" column="startIsuueCode" jdbcType="VARCHAR"/>
+        <result property="finishissue" column="finishIssue" jdbcType="INTEGER"/>
+        <result property="totalissue" column="totalIssue" jdbcType="INTEGER"/>
+        <result property="stopmode" column="stopMode" jdbcType="INTEGER"/>
+        <result property="plantype" column="planType" jdbcType="INTEGER"/>
+        <result property="plancode" column="planCode" jdbcType="VARCHAR"/>
+        <result property="totamount" column="totamount" jdbcType="INTEGER"/>
+        <result property="soldamount" column="soldAmount" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="winamount" column="winAmount" jdbcType="INTEGER"/>
+        <result property="userid" column="userId" jdbcType="INTEGER"/>
+        <result property="startmutiple" column="startMutiple" jdbcType="INTEGER"/>
+        <result property="issuerate" column="issueRate" jdbcType="INTEGER"/>
+        <result property="winrate" column="winRate" jdbcType="INTEGER"/>
+        <result property="startamount" column="startAmount" jdbcType="INTEGER"/>
+        <result property="numberrecord" column="numberRecord" jdbcType="VARCHAR"/>
+        <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,lotteryId,startIsuueCode,
+        finishIssue,totalIssue,stopMode,
+        planType,planCode,totamount,
+        soldAmount,status,winAmount,
+        userId,startMutiple,issueRate,
+        winRate,startAmount,numberRecord,
+        createTime,updateTime
+    </sql>
+
+    <select id="findGamePlan" resultType="org.example.po.dream.hf.HfGamePlanDO">
+        select * from hf_game_plan where 1=1
+        <if test="userId != null">
+            and userId = #{userId}
+        </if>
+        <if test="status == 0">
+            and status in (0,2,3)
+        </if>
+        <if test="status == 1">
+            and status = 0
+        </if>
+        <if test="status == 2">
+            and status = 2
+        </if>
+        <if test="status == 3">
+            and status = 3
+        </if>
+        <if test="id != null">
+            and id = #{id}
+        </if>
+        order by id desc
+        limit 50
+    </select>
+    <select id="findGamePlanDetailByID" resultType="org.example.po.dream.hf.HfGamePlanDetailDO">
+        select t1.gameIssue, t1.mutiple, t1.totamount, t2.orderStatus, t2.accWin, t2.id as orderCode
+        from hf_game_plan_detail t1
+                 LEFT JOIN hf_game_order t2
+                           on t1.id = t2.gamePlanDetailId
+                 LEFT JOIN hf_game_plan t3
+                           on t1.planId = t3.id
+        where t3.userId = #{userId}
+          and t1.planId = #{planId};
+    </select>
+    <select id="findGamePlanByStatus" resultType="org.example.po.dream.hf.HfGamePlanDO">
+        select * from hf_game_plan
+        where status=#{status} order by startIsuueCode
+    </select>
+</mapper>

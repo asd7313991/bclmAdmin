@@ -1,0 +1,22 @@
+package org.example.system.vo.ip.vo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+/**
+ * The type Area node simple resp vo.
+ */
+@Schema(description = "管理后台 - 简洁的地区节点 Response VO")
+@Data
+public class AreaNodeSimpleRespVO {
+
+    @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "110000")
+    private Integer id;
+
+    @Schema(description = "名字", requiredMode = Schema.RequiredMode.REQUIRED, example = "北京")
+    private String name;
+
+    @Schema(description = "是否叶子节点", example = "false")
+    private Boolean leaf;
+
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamUStatisticsMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamUStatisticsDO">
+        <id property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="attention" column="attention" jdbcType="INTEGER"/>
+        <result property="follower" column="follower" jdbcType="INTEGER"/>
+        <result property="viewpoint" column="viewpoint" jdbcType="INTEGER"/>
+        <result property="viewpointPass" column="viewpoint_pass" jdbcType="INTEGER"/>
+        <result property="viewpointFail" column="viewpoint_fail" jdbcType="INTEGER"/>
+        <result property="reply" column="reply" jdbcType="INTEGER"/>
+        <result property="replyPass" column="reply_pass" jdbcType="INTEGER"/>
+        <result property="replyFail" column="reply_fail" jdbcType="INTEGER"/>
+        <result property="loan" column="loan" jdbcType="INTEGER"/>
+        <result property="loanPass" column="loan_pass" jdbcType="INTEGER"/>
+        <result property="loanFail" column="loan_fail" jdbcType="INTEGER"/>
+        <result property="lend" column="lend" jdbcType="INTEGER"/>
+        <result property="lendPass" column="lend_pass" jdbcType="INTEGER"/>
+        <result property="lendFail" column="lend_fail" jdbcType="INTEGER"/>
+        <result property="guessDirect" column="guess_direct" jdbcType="INTEGER"/>
+        <result property="guessDirectPass" column="guess_direct_pass" jdbcType="INTEGER"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="modifyDate" column="modify_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        user_id
+        ,attention,follower,
+        viewpoint,viewpoint_pass,viewpoint_fail,
+        reply,reply_pass,reply_fail,
+        loan,loan_pass,loan_fail,
+        lend,lend_pass,lend_fail,
+        guess_direct,guess_direct_pass,create_date,
+        modify_date
+    </sql>
+</mapper>

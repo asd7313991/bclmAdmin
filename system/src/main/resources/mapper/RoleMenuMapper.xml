@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.system.db.mysql.mapper.system.RoleMenuMapper">
+    <select id="selectListByRoleIds" resultType="org.example.system.db.mysql.po.system.MenuDO">
+        select distinct sm.*
+        from system_role_menu srm inner join system_menu sm on sm.id = srm.menu_id
+        inner join system_role sr on sr.id = srm.role_id
+        where sr.id in
+        <foreach collection="roleList" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+
+    </select>
+</mapper>

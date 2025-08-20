@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.po.mapper.dream.DreamDepositVirAddressMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.po.dream.dream.DreamDepositVirAddressDO">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="version" column="version" jdbcType="BIGINT"/>
+            <result property="deleted" column="deleted" jdbcType="INTEGER"/>
+            <result property="status" column="status" jdbcType="INTEGER"/>
+            <result property="depositTypeId" column="deposit_type_id" jdbcType="VARCHAR"/>
+            <result property="protocol" column="protocol" jdbcType="VARCHAR"/>
+            <result property="address" column="address" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+            <result property="maxMount" column="max_mount" jdbcType="VARCHAR"/>
+            <result property="sort" column="sort" jdbcType="INTEGER"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="qrImage" column="qr_image" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,create_time,update_time,
+        version,deleted,status,
+        deposit_type_id,procoto,address,
+        remark,max_mount,sort,
+        name,qr_image
+    </sql>
+    <select id="selectPageNew" resultType="org.example.vo.DreamDepositVirAddressVO">
+        select ddva.*,ddt.name as payTypeName
+        from dream_deposit_vir_address ddva
+        left join dream_deposit_type ddt on ddt.id = ddva.deposit_type_id
+        <where>
+            <if test="vo.depositTypeId != null">
+                ddva.pay_type_id = #{vo.depositTypeId}
+            </if>
+            <if test="vo.id != null">
+                ddva.id = #{vo.id}
+            </if>
+            <if test="vo.name != null">
+                ddva.name like concat('%',#{vo.name},'%')
+            </if>
+            <if test="vo.protocol != null">
+                ddva.protocol = #{vo.protocol}
+            </if>
+            <if test="vo.address != null">
+                ddva.address = #{vo.address}
+            </if>
+            <if test="vo.status != null">
+                ddva.status = #{vo.status}
+            </if>
+        </where>
+        order by ddva.status asc,ddva.create_time desc
+    </select>
+</mapper>
