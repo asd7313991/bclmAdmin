@@ -11,11 +11,10 @@ import org.example.game.game.enums.GamePlanType;
 import org.example.game.game.service.GameOrderService;
 import org.example.pojo.CommonResult;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  *
@@ -199,11 +198,12 @@ public class GameBetController {
     /**
      * 寻找order详情
      */
-    @RequestMapping(value = "/getOrderList.do")
+    @PostMapping(value = "/getOrderList.do")
     @ResponseBody
     // @Transactional
-    public CommonResult getOrderList(String lotteryId, Integer status) {
-        lotteryId = "1";
+    public CommonResult getOrderList(@RequestBody Map<String, Object> data) {
+        String lotteryId = data.get("lotteryId").toString();
+        Integer status = Integer.valueOf(data.get("status").toString());
         Assert.notNull(status, "状态为空");
         Integer userId = StpPlayerUtil.getLoginIdAsInt();
         return CommonResult.success(gameOrderService.getOrderList(lotteryId, userId, status));

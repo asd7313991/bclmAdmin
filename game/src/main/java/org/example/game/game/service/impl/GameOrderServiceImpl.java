@@ -86,7 +86,7 @@ public class GameOrderServiceImpl implements GameOrderService {
 
         HfGameIssueDO gim = findcurIssue(lotteryId);
 
-        String redisIssue = gim.getIssuecode();
+        String redisIssue = gim.getIssueCode();
 
         long redisIssueInt = Long.parseLong(redisIssue);
 
@@ -169,7 +169,7 @@ public class GameOrderServiceImpl implements GameOrderService {
             throw new BusinessException(ResponseCode.BET_ISSUE_ERROR, "当前期号非法");
         }
 
-        String redisIssue = gim.getIssuecode();
+        String redisIssue = gim.getIssueCode();
 
 
         long redisIssueInt = Long.parseLong(redisIssue);
@@ -249,12 +249,12 @@ public class GameOrderServiceImpl implements GameOrderService {
     @Override
     public HfGameIssueDO findcurIssue(String lotteryId) {
 
-        HfGameIssueDO issueModel = (HfGameIssueDO) redisTemplate.opsForValue().get(GameBetRedisKey.GAME_ISSUE_BEING + lotteryId);
-
-        if (null == issueModel) {
-            issueModel = hfGameIssueService.findcurIssue(lotteryId);
-            redisTemplate.opsForValue().set(GameBetRedisKey.GAME_ISSUE_BEING + lotteryId, issueModel);
-        }
+//        HfGameIssueDO issueModel = (HfGameIssueDO) redisTemplate.opsForValue().get(GameBetRedisKey.GAME_ISSUE_BEING + lotteryId);
+        HfGameIssueDO issueModel = hfGameIssueService.findcurIssue(lotteryId);
+//        if (null == issueModel) {
+//            issueModel = hfGameIssueService.findcurIssue(lotteryId);
+//            redisTemplate.opsForValue().set(GameBetRedisKey.GAME_ISSUE_BEING + lotteryId, issueModel);
+//        }
 
         return issueModel;
     }
@@ -326,12 +326,12 @@ public class GameOrderServiceImpl implements GameOrderService {
                 String stopTime = SimpleDateFormatUtil.dateByNum(startSale, ttSale);
 //				issueNum++;
                 HfGameIssueDO gim = new HfGameIssueDO();
-                gim.setLastissuecode(String.valueOf(startNum - 1));
-                gim.setIssuecode(String.valueOf(startNum));
+                gim.setLastIssueCode(String.valueOf(startNum - 1));
+                gim.setIssueCode(String.valueOf(startNum));
                 gim.setLotteryid(lotteryId);
 
-                gim.setSalestarttime(SimpleDateFormatUtil.stringToDate(startSale));
-                gim.setSaleendtime(SimpleDateFormatUtil.stringToDate(stopSaleDate));
+                gim.setSaleStartTime(SimpleDateFormatUtil.stringToDate(startSale));
+                gim.setSaleEndTime(SimpleDateFormatUtil.stringToDate(stopSaleDate));
                 gim.setSaleDrawTime(SimpleDateFormatUtil.stringToDate(stopTime));
 
                 hfGameIssueService.save(gim);

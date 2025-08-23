@@ -24,7 +24,7 @@ public class HfGameIssueDO implements Serializable {
     /**
      * 奖期
      */
-    private String issuecode;
+    private String issueCode;
 
     /**
      * 彩种id
@@ -34,12 +34,14 @@ public class HfGameIssueDO implements Serializable {
     /**
      * 开始销售时间
      */
-    private Date salestarttime;
+    @TableField("saleStartTime")
+    private Date saleStartTime;
 
     /**
      * 结束销售时间
      */
-    private Date saleendtime;
+    @TableField("saleEndTime")
+    private Date saleEndTime;
 
     @TableField("saleDrawTime")
     private Date saleDrawTime;
@@ -47,22 +49,23 @@ public class HfGameIssueDO implements Serializable {
     /**
      * 开奖时间
      */
-    private Date opendrawtime;
+    @TableField("openDrawTime")
+    private Date openDrawTime;
 
     /**
      * 中奖号码
      */
-    private String numberrecord;
+    private String numberRecord;
 
     /**
      * 求和结果
      */
-    private String sumrecord;
+    private String sumRecord;
 
     /**
      * 中奖方式
      */
-    private String winrecord;
+    private String winRecord;
 
     /**
      * 提前结束秒
@@ -72,12 +75,12 @@ public class HfGameIssueDO implements Serializable {
     /**
      * 上期
      */
-    private String lastissuecode;
+    private String lastIssueCode;
 
     /**
      *
      */
-    private Integer issuestatus;
+    private Integer issueStatus;
 
     /**
      * 创建时间
@@ -91,12 +94,44 @@ public class HfGameIssueDO implements Serializable {
 
     @TableField("receiveTime")
     private Date receiveTime;
-    @TableField("openDrawTimeByPlayNow")
-    private Date openDrawTimeByPlayNow;
+    @TableField("OpenDrawTimeByPlayNow")
+    private Date OpenDrawTimeByPlayNow;
 
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    public Date getSaleStartTime() {
+        return saleStartTime;
+    }
+
+    public void setSaleStartTime(Date saleStartTime) {
+        this.saleStartTime = saleStartTime;
+    }
+
+    public Date getSaleEndTime() {
+        return saleEndTime;
+    }
+
+    public void setSaleEndTime(Date saleEndTime) {
+        this.saleEndTime = saleEndTime;
+    }
+
+    public Date getSaleDrawTime() {
+        return saleDrawTime;
+    }
+
+    public void setSaleDrawTime(Date saleDrawTime) {
+        this.saleDrawTime = saleDrawTime;
+    }
+
+    public Date getOpenDrawTime() {
+        return openDrawTime;
+    }
+
+    public void setOpenDrawTime(Date openDrawTime) {
+        this.openDrawTime = openDrawTime;
+    }
 
     @Override
     public boolean equals(Object that) {
@@ -111,17 +146,17 @@ public class HfGameIssueDO implements Serializable {
         }
         HfGameIssueDO other = (HfGameIssueDO) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-                && (this.getIssuecode() == null ? other.getIssuecode() == null : this.getIssuecode().equals(other.getIssuecode()))
+                && (this.getIssueCode() == null ? other.getIssueCode() == null : this.getIssueCode().equals(other.getIssueCode()))
                 && (this.getLotteryid() == null ? other.getLotteryid() == null : this.getLotteryid().equals(other.getLotteryid()))
-                && (this.getSalestarttime() == null ? other.getSalestarttime() == null : this.getSalestarttime().equals(other.getSalestarttime()))
-                && (this.getSaleendtime() == null ? other.getSaleendtime() == null : this.getSaleendtime().equals(other.getSaleendtime()))
-                && (this.getOpendrawtime() == null ? other.getOpendrawtime() == null : this.getOpendrawtime().equals(other.getOpendrawtime()))
-                && (this.getNumberrecord() == null ? other.getNumberrecord() == null : this.getNumberrecord().equals(other.getNumberrecord()))
-                && (this.getSumrecord() == null ? other.getSumrecord() == null : this.getSumrecord().equals(other.getSumrecord()))
-                && (this.getWinrecord() == null ? other.getWinrecord() == null : this.getWinrecord().equals(other.getWinrecord()))
+                && (this.getSaleStartTime() == null ? other.getSaleStartTime() == null : this.getSaleStartTime().equals(other.getSaleStartTime()))
+                && (this.getSaleEndTime() == null ? other.getSaleEndTime() == null : this.getSaleEndTime().equals(other.getSaleEndTime()))
+                && (this.getOpenDrawTime() == null ? other.getOpenDrawTime() == null : this.getOpenDrawTime().equals(other.getOpenDrawTime()))
+                && (this.getNumberRecord() == null ? other.getNumberRecord() == null : this.getNumberRecord().equals(other.getNumberRecord()))
+                && (this.getSumRecord() == null ? other.getSumRecord() == null : this.getSumRecord().equals(other.getSumRecord()))
+                && (this.getWinRecord() == null ? other.getWinRecord() == null : this.getWinRecord().equals(other.getWinRecord()))
                 && (this.getPreendissue() == null ? other.getPreendissue() == null : this.getPreendissue().equals(other.getPreendissue()))
-                && (this.getLastissuecode() == null ? other.getLastissuecode() == null : this.getLastissuecode().equals(other.getLastissuecode()))
-                && (this.getIssuestatus() == null ? other.getIssuestatus() == null : this.getIssuestatus().equals(other.getIssuestatus()))
+                && (this.getLastIssueCode() == null ? other.getLastIssueCode() == null : this.getLastIssueCode().equals(other.getLastIssueCode()))
+                && (this.getIssueStatus() == null ? other.getIssueStatus() == null : this.getIssueStatus().equals(other.getIssueStatus()))
                 && (this.getCreatetime() == null ? other.getCreatetime() == null : this.getCreatetime().equals(other.getCreatetime()))
                 && (this.getUpdatetime() == null ? other.getUpdatetime() == null : this.getUpdatetime().equals(other.getUpdatetime()));
     }
@@ -131,17 +166,17 @@ public class HfGameIssueDO implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getIssuecode() == null) ? 0 : getIssuecode().hashCode());
+        result = prime * result + ((getIssueCode() == null) ? 0 : getIssueCode().hashCode());
         result = prime * result + ((getLotteryid() == null) ? 0 : getLotteryid().hashCode());
-        result = prime * result + ((getSalestarttime() == null) ? 0 : getSalestarttime().hashCode());
-        result = prime * result + ((getSaleendtime() == null) ? 0 : getSaleendtime().hashCode());
-        result = prime * result + ((getOpendrawtime() == null) ? 0 : getOpendrawtime().hashCode());
-        result = prime * result + ((getNumberrecord() == null) ? 0 : getNumberrecord().hashCode());
-        result = prime * result + ((getSumrecord() == null) ? 0 : getSumrecord().hashCode());
-        result = prime * result + ((getWinrecord() == null) ? 0 : getWinrecord().hashCode());
+        result = prime * result + ((getSaleStartTime() == null) ? 0 : getSaleStartTime().hashCode());
+        result = prime * result + ((getSaleEndTime() == null) ? 0 : getSaleEndTime().hashCode());
+        result = prime * result + ((getOpenDrawTime() == null) ? 0 : getOpenDrawTime().hashCode());
+        result = prime * result + ((getNumberRecord() == null) ? 0 : getNumberRecord().hashCode());
+        result = prime * result + ((getSumRecord() == null) ? 0 : getSumRecord().hashCode());
+        result = prime * result + ((getWinRecord() == null) ? 0 : getWinRecord().hashCode());
         result = prime * result + ((getPreendissue() == null) ? 0 : getPreendissue().hashCode());
-        result = prime * result + ((getLastissuecode() == null) ? 0 : getLastissuecode().hashCode());
-        result = prime * result + ((getIssuestatus() == null) ? 0 : getIssuestatus().hashCode());
+        result = prime * result + ((getLastIssueCode() == null) ? 0 : getLastIssueCode().hashCode());
+        result = prime * result + ((getIssueStatus() == null) ? 0 : getIssueStatus().hashCode());
         result = prime * result + ((getCreatetime() == null) ? 0 : getCreatetime().hashCode());
         result = prime * result + ((getUpdatetime() == null) ? 0 : getUpdatetime().hashCode());
         return result;
@@ -154,17 +189,17 @@ public class HfGameIssueDO implements Serializable {
         sb.append(" [");
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
-        sb.append(", issuecode=").append(issuecode);
+        sb.append(", IssueCode=").append(issueCode);
         sb.append(", lotteryid=").append(lotteryid);
-        sb.append(", salestarttime=").append(salestarttime);
-        sb.append(", saleendtime=").append(saleendtime);
-        sb.append(", opendrawtime=").append(opendrawtime);
-        sb.append(", numberrecord=").append(numberrecord);
-        sb.append(", sumrecord=").append(sumrecord);
-        sb.append(", winrecord=").append(winrecord);
+        sb.append(", SaleStartTime=").append(saleStartTime);
+        sb.append(", SaleEndTime=").append(saleEndTime);
+        sb.append(", OpenDrawTime=").append(openDrawTime);
+        sb.append(", NumberRecord=").append(numberRecord);
+        sb.append(", SumRecord=").append(sumRecord);
+        sb.append(", WinRecord=").append(winRecord);
         sb.append(", preendissue=").append(preendissue);
-        sb.append(", lastissuecode=").append(lastissuecode);
-        sb.append(", issuestatus=").append(issuestatus);
+        sb.append(", LastIssueCode=").append(lastIssueCode);
+        sb.append(", IssueStatus=").append(issueStatus);
         sb.append(", createtime=").append(createtime);
         sb.append(", updatetime=").append(updatetime);
         sb.append(", serialVersionUID=").append(serialVersionUID);

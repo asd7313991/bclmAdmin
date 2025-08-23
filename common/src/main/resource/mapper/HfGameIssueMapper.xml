@@ -5,17 +5,17 @@
 <mapper namespace="org.example.po.mapper.hf.HfGameIssueMapper">
     <resultMap id="BaseResultMap" type="org.example.po.dream.hf.HfGameIssueDO">
         <id property="id" column="id" jdbcType="INTEGER"/>
-        <result property="issuecode" column="issueCode" jdbcType="VARCHAR"/>
+        <result property="issueCode" column="issueCode" jdbcType="VARCHAR"/>
         <result property="lotteryid" column="lotteryId" jdbcType="VARCHAR"/>
-        <result property="salestarttime" column="saleStartTime" jdbcType="TIMESTAMP"/>
-        <result property="saleendtime" column="saleEndTime" jdbcType="TIMESTAMP"/>
-        <result property="opendrawtime" column="openDrawTime" jdbcType="TIMESTAMP"/>
-        <result property="numberrecord" column="numberRecord" jdbcType="VARCHAR"/>
-        <result property="sumrecord" column="sumRecord" jdbcType="VARCHAR"/>
-        <result property="winrecord" column="winRecord" jdbcType="VARCHAR"/>
+        <result property="saleStartTime" column="saleStartTime" jdbcType="TIMESTAMP"/>
+        <result property="saleEndTime" column="saleEndTime" jdbcType="TIMESTAMP"/>
+        <result property="openDrawTime" column="openDrawTime" jdbcType="TIMESTAMP"/>
+        <result property="numberRecord" column="numberRecord" jdbcType="VARCHAR"/>
+        <result property="sumRecord" column="sumRecord" jdbcType="VARCHAR"/>
+        <result property="winRecord" column="winRecord" jdbcType="VARCHAR"/>
         <result property="preendissue" column="preEndIssue" jdbcType="INTEGER"/>
-        <result property="lastissuecode" column="lastIssueCode" jdbcType="VARCHAR"/>
-        <result property="issuestatus" column="issueStatus" jdbcType="INTEGER"/>
+        <result property="lastIssueCode" column="lastIssueCode" jdbcType="VARCHAR"/>
+        <result property="issueStatus" column="issueStatus" jdbcType="INTEGER"/>
         <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
         <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -33,8 +33,9 @@
     <select id="findcurIssue" resultMap="BaseResultMap">
         select *
         from hf_game_issue
-        where issueStatus = 1
-          and lotteryId = #{lotteryId} limit 1
+        where issueStatus = 3
+          and lotteryId = #{lotteryId}
+        order by issueCode desc limit 1
     </select>
 
     <select id="findHistoryIssue" resultMap="BaseResultMap">
@@ -48,15 +49,49 @@
     </select>
 
     <update id="drawGameIssue">
-        update hf_game_issue
-        set numberRecord=#{numberRecord},
-            sumRecord=#{sumRecord},
-            winRecord=#{winRecord},
-            openDrawTime=now(),
-            issueStatus=3
-        where issueCode = #{issue}
-          and issueStatus = 2
+        UPDATE hf_game_issue
+        SET numberRecord = #{numberRecord},
+            sumRecord    = #{sumRecord},
+            winRecord    = #{winRecord},
+            openDrawTime = NOW(),
+            issueStatus  = 3
+        WHERE issueCode  = #{issue}
+          AND issueStatus = 2
     </update>
+
+    <!-- 2) 兜底：统计该期是否已存在（可选，用于你之前的 backfill 检查） -->
+    <select id="countByIssue" resultType="int">
+        SELECT COUNT(1)
+        FROM hf_game_issue
+        WHERE issueCode = #{issue}
+    </select>
+
+    <!-- 3) 开新期待开奖记录：不存在则插入 (issueStatus=2) -->
+    <insert id="insertIssueIfAbsent">
+        INSERT INTO hf_game_issue (
+            lotteryId,
+            issueCode,
+            lastIssueCode,
+            saleStartTime,
+            saleEndTime,
+            saleDrawTime,
+            issueStatus,
+            createTime
+        ) VALUES (
+                     #{lotteryId},
+                     #{issue},
+                     #{lastIssue},
+                     #{saleStartTime},
+                     #{saleEndTime},
+                     #{saleDrawTime},
+                     2,
+                     NOW()
+                 )
+            ON DUPLICATE KEY UPDATE
+                                 issueCode = issueCode
+    </insert>
+
+
 
 
     <update id="issueOpenClose">

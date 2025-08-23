@@ -38,17 +38,17 @@ public class HfGameIssueServiceImpl extends ServiceImpl<HfGameIssueMapper, HfGam
         DateTime parse = DateUtil.parse(kenoDrawThirdDTO.getDrawDate() + " " + kenoDrawThirdDTO.getDrawTime(), "yyyy-MM-dd HH:mm:ss");
         hfGameIssueDO.setOpenDrawTimeByPlayNow(parse);
 
-        HfGameIssueDO hfGameIssueDO1 = getBaseMapper().selectOne(new LambdaQueryWrapperX<HfGameIssueDO>().eq(HfGameIssueDO::getLotteryid, 1).eq(HfGameIssueDO::getIssuecode, kenoDrawThirdDTO.getDrawNbr()));
+        HfGameIssueDO hfGameIssueDO1 = getBaseMapper().selectOne(new LambdaQueryWrapperX<HfGameIssueDO>().eq(HfGameIssueDO::getLotteryid, 1).eq(HfGameIssueDO::getIssueCode, kenoDrawThirdDTO.getDrawNbr()));
         if (hfGameIssueDO1 == null) {
             hfGameIssueDO1 = new HfGameIssueDO();
             hfGameIssueDO1.setLotteryid("1");
-            hfGameIssueDO1.setIssuecode(String.valueOf(kenoDrawThirdDTO.getDrawNbr()));
-            hfGameIssueDO1.setLastissuecode(String.valueOf(kenoDrawThirdDTO.getDrawNbr() - 1));
-            hfGameIssueDO1.setSaleendtime(DateUtil.offset(parse, DateField.SECOND, -30));
+            hfGameIssueDO1.setIssueCode(String.valueOf(kenoDrawThirdDTO.getDrawNbr()));
+            hfGameIssueDO1.setLastIssueCode(String.valueOf(kenoDrawThirdDTO.getDrawNbr() - 1));
+            hfGameIssueDO1.setSaleEndTime(DateUtil.offset(parse, DateField.SECOND, -30));
             hfGameIssueDO1.setSaleDrawTime(parse);
             getBaseMapper().insert(hfGameIssueDO1);
         } else {
-            getBaseMapper().update(hfGameIssueDO, new LambdaUpdateWrapper<HfGameIssueDO>().eq(HfGameIssueDO::getIssuecode, kenoDrawThirdDTO.getDrawNbr()).eq(HfGameIssueDO::getLotteryid, 1).isNull(HfGameIssueDO::getNumberrecord));
+            getBaseMapper().update(hfGameIssueDO, new LambdaUpdateWrapper<HfGameIssueDO>().eq(HfGameIssueDO::getIssueCode, kenoDrawThirdDTO.getDrawNbr()).eq(HfGameIssueDO::getLotteryid, 1).isNull(HfGameIssueDO::getNumberRecord));
         }
 
 
@@ -65,10 +65,14 @@ public class HfGameIssueServiceImpl extends ServiceImpl<HfGameIssueMapper, HfGam
     }
 
     @Override
-    public void drawGameIssue(String numberRecord, String sumRecord, String winRecord, String issue) {
-        getBaseMapper().drawGameIssue(numberRecord, sumRecord, winRecord, issue);
+    public int drawGameIssue(String numberRecord, String sumRecord, String winRecord, String issue) {
+        return getBaseMapper().drawGameIssue(numberRecord, sumRecord, winRecord, issue);
     }
 
+    @Override
+    public int countByIssue(String issue) {
+        return getBaseMapper().countByIssue(issue);
+    }
 
     @Override
     public void issueOpenClose(int issueStatus, String lotteryId, String issueCode) {
@@ -78,6 +82,11 @@ public class HfGameIssueServiceImpl extends ServiceImpl<HfGameIssueMapper, HfGam
     @Override
     public HfGameIssueDO findIssueByStatus(String lotteryId, int value) {
         return getBaseMapper().findIssueByStatus(lotteryId, value);
+    }
+
+    @Override
+    public int insertIssueIfAbsent(String issue, long lotteryIdLong, String lastIssue, Date saleStartTime, Date saleEndTime, Date saleDrawTime) {
+        return getBaseMapper().insertIssueIfAbsent(issue, lotteryIdLong, lastIssue, saleStartTime, saleEndTime, saleDrawTime);
     }
 
     public HfGameIssueDO getResult(List<Integer> drawNbrs) {
@@ -98,8 +107,8 @@ public class HfGameIssueServiceImpl extends ServiceImpl<HfGameIssueMapper, HfGam
         }
         HfGameIssueDO hfGameIssueDO = new HfGameIssueDO();
 
-        hfGameIssueDO.setNumberrecord((sum1 % 10 + "," + sum2 % 10 + "," + sum3 % 10));
-        hfGameIssueDO.setSumrecord(String.valueOf((sum1 % 10 + sum2 % 10 + sum3 % 10)));
+        hfGameIssueDO.setNumberRecord((sum1 % 10 + "," + sum2 % 10 + "," + sum3 % 10));
+        hfGameIssueDO.setSumRecord(String.valueOf((sum1 % 10 + sum2 % 10 + sum3 % 10)));
         return hfGameIssueDO;
 //            pc28.setBeginTime(DateUtil.date(pc28.getOpenTime()).toString());
 //            pc28.setRet(OrderUtils.pc28Result(pc28.getResult()));

@@ -25,10 +25,11 @@
         <!--        -->
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--        -->
-        <springboot.version>2.7.14</springboot.version>
+        <springboot.version>2.7.15</springboot.version>
         <!--        -->
         <hutool.version>5.8.20</hutool.version>
         <jsoup.version>1.15.4</jsoup.version>
@@ -382,7 +383,7 @@
             <!-- IP地址检索 -->
             <dependency>
                 <groupId>org.lionsoul</groupId>
-                <artifactId>ip2region</artifactId>
+                <artifactId>ip2region </artifactId>
                 <version>2.7.0</version>
             </dependency>
 
@@ -453,6 +454,7 @@
                 <artifactId>hibernate-validator</artifactId>
                 <version>6.2.5.Final</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

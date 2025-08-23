@@ -18,18 +18,18 @@ public interface HfGameIssueMapper extends BaseMapperX<HfGameIssueDO> {
 
     default PageResult<HfGameIssueDO> selectPage(HfGameIssueReqVo pageVO) {
         LambdaQueryWrapperX<HfGameIssueDO> hfGameIssueDOLambdaQueryWrapperX = new LambdaQueryWrapperX<HfGameIssueDO>()
-                .eqIfPresent(HfGameIssueDO::getIssuecode, pageVO.getIssuecode())
+                .eqIfPresent(HfGameIssueDO::getIssueCode, pageVO.getIssuecode())
                 .eqIfPresent(HfGameIssueDO::getLotteryid, pageVO.getLotteryid())
-                .eqIfPresent(HfGameIssueDO::getNumberrecord, pageVO.getNumberrecord())
-                .eqIfPresent(HfGameIssueDO::getSumrecord, pageVO.getSumrecord())
-                .eqIfPresent(HfGameIssueDO::getWinrecord, pageVO.getWinrecord())
-                .eqIfPresent(HfGameIssueDO::getIssuestatus, pageVO.getIssuestatus())
-                .betweenIfPresent(HfGameIssueDO::getOpendrawtime, pageVO.getOpendrawtime())
+                .eqIfPresent(HfGameIssueDO::getNumberRecord, pageVO.getNumberrecord())
+                .eqIfPresent(HfGameIssueDO::getSumRecord, pageVO.getSumrecord())
+                .eqIfPresent(HfGameIssueDO::getWinRecord, pageVO.getWinrecord())
+                .eqIfPresent(HfGameIssueDO::getIssueStatus, pageVO.getIssuestatus())
+                .betweenIfPresent(HfGameIssueDO::getOpenDrawTime, pageVO.getOpendrawtime())
                 .betweenIfPresent(HfGameIssueDO::getCreatetime, pageVO.getCreateTime())
                 .orderByDesc(HfGameIssueDO::getCreatetime);
         if (pageVO.getSaleTime() != null) {
-            hfGameIssueDOLambdaQueryWrapperX.geIfPresent(HfGameIssueDO::getSalestarttime, pageVO.getSaleTime()[0]);
-            hfGameIssueDOLambdaQueryWrapperX.leIfPresent(HfGameIssueDO::getSaleendtime, pageVO.getSaleTime()[1]);
+            hfGameIssueDOLambdaQueryWrapperX.geIfPresent(HfGameIssueDO::getSaleStartTime, pageVO.getSaleTime()[0]);
+            hfGameIssueDOLambdaQueryWrapperX.leIfPresent(HfGameIssueDO::getSaleEndTime, pageVO.getSaleTime()[1]);
 
         }
         return selectPage(pageVO, hfGameIssueDOLambdaQueryWrapperX);
@@ -40,12 +40,33 @@ public interface HfGameIssueMapper extends BaseMapperX<HfGameIssueDO> {
 
     public List<HfGameIssueDO> findHistoryIssue(@Param("lotteryId") String lotteryId, @Param("issueCode") String issueCode);
 
-    public void drawGameIssue(@Param("numberRecord") String numberRecord, @Param("sumRecord") String sumRecord, @Param("winRecord") String winRecord, @Param("issue") String issue);
+//    public int drawGameIssue(@Param("numberRecord") String numberRecord, @Param("sumRecord") String sumRecord, @Param("winRecord") String winRecord, @Param("issue") String issue);
 
     public void issueOpenClose(@Param("issueStatus") int issueStatus, @Param("lotteryId") String lotteryId, @Param("issueCode") String issueCode);
 
     public HfGameIssueDO findIssueByStatus(@Param("lotteryId") String lotteryId, @Param("issueStatus") int issueStatus);
+
+
+    int drawGameIssue(@Param("numberRecord") String numberRecord,
+                      @Param("sumRecord")     String sumRecord,
+                      @Param("winRecord")     String winRecord,
+                      @Param("issue")         String issue);
+
+    // 可选：用于兜底检查
+    int countByIssue(@Param("issue") String issue);
+
+    int insertIssueIfAbsent(@org.apache.ibatis.annotations.Param("issue")         String issue,
+                            @org.apache.ibatis.annotations.Param("lotteryId")     Long lotteryId,
+                            @org.apache.ibatis.annotations.Param("lastIssue")     String lastIssue,
+                            @org.apache.ibatis.annotations.Param("saleStartTime") java.util.Date saleStartTime,
+                            @org.apache.ibatis.annotations.Param("saleEndTime")   java.util.Date saleEndTime,
+                            @org.apache.ibatis.annotations.Param("saleDrawTime")  java.util.Date saleDrawTime);
+
+
+
 }
+
+
 
 
 

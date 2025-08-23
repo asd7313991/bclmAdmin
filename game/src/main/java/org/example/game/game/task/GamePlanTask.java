@@ -180,8 +180,8 @@ public class GamePlanTask {
         Object lockredis = redisTemplate.opsForValue().get(GameBetRedisKey.BUILD_PLAN_ORDER_LOCK);
         if (null != gim && null == lockredis) {
             redisTemplate.opsForValue().set(GameBetRedisKey.BUILD_PLAN_ORDER_LOCK, 1);
-            String issueCode = gim.getIssuecode();
-            String lastIssueCode = gim.getLastissuecode();
+            String issueCode = gim.getIssueCode();
+            String lastIssueCode = gim.getLastIssueCode();
             List<HfGamePlanDetailDO> gamePlanDetailModelList = gamePlanDao.findGamePlanDetail(lotteryId,
                     String.valueOf(issueCode), GamePlanDetailStatus.UN_EXEC.getValue(), lastIssueCode);
 

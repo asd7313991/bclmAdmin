@@ -28,7 +28,7 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %X{tl} [%thread] %-5level %logger{50} - %msg%n</pattern>
         </encoder>
         <!-- 日志文件名 -->
-        <file>${LOG_HOME}/${APP_NAME}.log}</file>
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <FileNamePattern>${LOG_HOME}/${APP_NAME}.log.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
             <MaxHistory>30</MaxHistory>
@@ -55,40 +55,50 @@
 
 
     <!-- 本地环境 -->
+    <!-- 本地环境 -->
     <springProfile name="local">
-        <root level="DEBUG">
-            <appender-ref ref="STDOUT"/>
-            <appender-ref ref="ASYNC"/>  <!-- 本地环境下，如果不想打印日志，可以注释掉本行 -->
-        </root>
-        <logger name="org.apache" level="INFO"/>
-        <logger name="org.springframework" level="INFO"/>
-        <logger name="org.mybatis" level="debug"/>
-        <logger name="io.netty" level="INFO"/>
-        <logger name="org.hibernate" level="INFO"/>
-        <logger name="org.springframework.boot" level="INFO"/>
-        <logger name="org.springframework.web" level="INFO"/>
-    </springProfile>
-    <springProfile name="test">
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="ASYNC"/>
         </root>
-        <logger name="org.apache" level="INFO"/>
         <logger name="org.springframework" level="INFO"/>
-        <logger name="org.mybatis" level="debug"/>
-        <logger name="io.netty" level="INFO"/>
-        <logger name="org.hibernate" level="INFO"/>
-        <logger name="org.springframework.boot" level="INFO"/>
-        <logger name="org.springframework.web" level="INFO"/>
-        <logger name="ma.glasnost.orika" level="INFO"/>
+        <logger name="org.mybatis" level="WARN"/>
+        <logger name="org.apache.ibatis" level="WARN"/>
+        <logger name="com.baomidou" level="WARN"/>
+        <logger name="com.baomidou.dynamic.datasource" level="WARN"/>
+        <logger name="com.alibaba.druid" level="WARN"/>
+        <logger name="com.yomahub.tlog" level="WARN"/>
     </springProfile>
+
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ASYNC"/>
+        </root>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mybatis" level="WARN"/>
+        <logger name="org.apache.ibatis" level="WARN"/>
+        <logger name="com.baomidou" level="WARN"/>
+        <logger name="com.baomidou.dynamic.datasource" level="WARN"/>
+        <logger name="com.alibaba.druid" level="WARN"/>
+        <logger name="com.yomahub.tlog" level="WARN"/>
+    </springProfile>
+
     <!-- 其它环境 -->
     <springProfile name="stage,prod,default">
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="ASYNC"/>
-            <!--            <appender-ref ref="GRPC"/>-->
+            <!-- <appender-ref ref="GRPC"/> 如需 -->
         </root>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mybatis" level="WARN"/>
+        <logger name="org.apache.ibatis" level="WARN"/>
+        <logger name="com.baomidou" level="WARN"/>
+        <logger name="com.baomidou.dynamic.datasource" level="WARN"/>
+        <logger name="com.alibaba.druid" level="WARN"/>
+        <logger name="com.yomahub.tlog" level="WARN"/>
     </springProfile>
+
 
 </configuration>

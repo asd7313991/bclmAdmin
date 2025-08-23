@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -57,61 +58,134 @@ public class GameIssueTask {
 
     private static Logger logger = LoggerFactory.getLogger(GameIssueTask.class);
 
+    @Scheduled(fixedDelay = 2_000) // 每 10 秒跑一次
     @Transactional(rollbackFor = {Exception.class})
     public void getIssueNum() {
-        String numberRecord = null;
-        String sumRecord = null;
-        String winRecord = null;
-        String issue = null;
+        String numberRecord = null; // 开奖码，如 "3,4,8"
+        String sumRecord = null;    // 和值，如 "15"
+        String winRecord = null;    // 中奖项集合（字符串，逗号分隔）
+        String issue = null;        // 期号
         String sysIssueCode = null;
         String lotteryId = "1";
 
+        // URL 从 Redis 读取；没有则写入默认（新）地址
         String url = (String) redisTemplate.opsForValue().get(GameBetRedisKey.GAME_ISSUE_SOURCE_URL + lotteryId);
         if (StringUtils.isNullOrEmpty(url)) {
-            url = "http://8.211.36.227:7099/pc28";
+            url = "https://cs00.vip/data/last/jnd28.json";
             redisTemplate.opsForValue().set(GameBetRedisKey.GAME_ISSUE_SOURCE_URL + lotteryId, url);
         }
+        // 防缓存时间戳
+        String reqUrl = url.contains("?") ? (url + "&_=" + System.currentTimeMillis()) : (url + "?_=" + System.currentTimeMillis());
 
         try {
-            String jsonRet = HttpUtil.get(url, 5000);
-
+            String jsonRet = HttpUtil.get(reqUrl, 5000);
             logger.info("getIssueNum  http result [{}]  >>> ", jsonRet);
 
-            if (null != jsonRet) {
-                String realJson = jsonRet.replaceAll("\\[", "").replaceAll("\\]", "");
-                JSONObject retJson = JSONObject.parseObject(realJson);
-                numberRecord = retJson.getString("result");
-                sumRecord = retJson.getString("sumResult");
-                winRecord = retJson.getString("ret");
-                issue = retJson.getString("number");
-                Integer bigOrSmalSide = Integer.parseInt(sumRecord);
-                if (bigOrSmalSide > -1 && bigOrSmalSide < 5) {
-                    if (winRecord.indexOf("32") == -1) {
-                        winRecord = winRecord + "32";
-                    }
-                } else if (bigOrSmalSide > 21 && bigOrSmalSide < 28) {
-                    if (winRecord.indexOf("33") == -1) {
-                        winRecord = winRecord + "33";
+            if (jsonRet != null && jsonRet.trim().length() > 0) {
+                // 新返回就是一个对象，不再是 [ {...} ] 这种数组
+                JSONObject obj = JSONObject.parseObject(jsonRet);
+
+                // 期号：issue 或 qihao
+                issue = obj.getString("issue");
+                if (StringUtils.isNullOrEmpty(issue)) {
+                    issue = obj.getString("qihao");
+                }
+
+                // 开奖码："code": "3,4,8"（优先）
+                numberRecord = obj.getString("code");
+                if (StringUtils.isNullOrEmpty(numberRecord)) {
+                    // 兼容 "opennum": "3+4+8"
+                    String openNum = obj.getString("opennum");
+                    if (!StringUtils.isNullOrEmpty(openNum)) {
+                        numberRecord = openNum.replace("+", ",");
                     }
                 }
-                if (winRecord.endsWith(",")) {
-                    winRecord = winRecord.substring(0, winRecord.length() - 1);
+
+                // 和值
+                Integer sum = obj.getInteger("sum");
+                if (sum != null) {
+                    sumRecord = String.valueOf(sum);
                 }
-//				GameIssueModel gim = gameOrderService.findcurIssue(lotteryId);
+
+                // 旧接口有 "ret"，新接口没有；这里构造一个最小可用的 winRecord：
+                //   1) 至少包含和值（如 "15"），保证“和值X”的玩法能正常结算
+                //   2) 极小 / 极大（你原代码追加的 32/33）继续兼容
+                StringBuilder win = new StringBuilder();
+                if (!StringUtils.isNullOrEmpty(sumRecord)) {
+                    win.append(sumRecord); // 和值本身
+                    try {
+                        int s = Integer.parseInt(sumRecord);
+                        if (s >= 0 && s <= 4) {       // 极小
+                            if (win.length() > 0) win.append(",");
+                            win.append("32");
+                        } else if (s >= 22 && s <= 27) { // 极大
+                            if (win.length() > 0) win.append(",");
+                            win.append("33");
+                        }
+                    } catch (Exception ignore) { }
+                }
+                winRecord = win.toString();
+
+                // 幂等：与 Redis 里已开奖期号不同才入库
                 sysIssueCode = (String) redisTemplate.opsForValue().get(GameBetRedisKey.GAME_ISSUE_PRIZE + lotteryId);
-                if (sysIssueCode == null || !issue.equals(sysIssueCode)) {
-                    gameIssueDao.drawGameIssue(numberRecord, sumRecord, winRecord, issue);
-                    redisTemplate.opsForValue().set(GameBetRedisKey.GAME_ISSUE_PRIZE + lotteryId, issue);
-                    logger.info("getIssueNum [{}] for issue[{}] >>> ending", issue,
-                            numberRecord + "-" + sumRecord + "-" + winRecord);
+                if (!StringUtils.isNullOrEmpty(issue) && (sysIssueCode == null || !issue.equals(sysIssueCode))) {
+                    try {
+                        // —— 期号从接口解析出来后，进入“新期号分支”里：update 前先兜底插入 —— //
+                        String prizeKey = GameBetRedisKey.GAME_ISSUE_PRIZE + lotteryId;
+
+                        // lastIssue 取 sysIssueCode；如果没有，尝试用 (issue-1)；再不行就回退成 issue 自身以满足 NOT NULL 约束
+                        String lastIssue = (String) redisTemplate.opsForValue().get(prizeKey);
+                        if (StringUtils.isNullOrEmpty(lastIssue)) {
+                            try {
+                                long cur = Long.parseLong(issue.replaceAll("[^0-9]", ""));
+                                lastIssue = String.valueOf(cur - 1);
+                            } catch (Exception ignore) {
+                                lastIssue = issue; // 最后兜底，保证非空
+                            }
+                        }
+
+                        // 计算三个销售时间：默认一期开3分钟（按需改）
+                        //   start = now
+                        //   end   = start + 150s (2分30秒)
+                        //   draw  = start + 180s (3分钟)
+                        java.util.Date saleStartTime = new java.util.Date();
+                        java.util.Date saleEndTime   = new java.util.Date(saleStartTime.getTime() + 150_000L);
+                        java.util.Date saleDrawTime  = new java.util.Date(saleStartTime.getTime() + 180_000L);
+
+                        // 如果接口里带了官方开奖时间（你现在的新源有 "time"/"opentime"），可以用它覆盖 saleDrawTime：
+                        // String openTimeStr = obj.getString("time"); if (StringUtils.isNullOrEmpty(openTimeStr)) openTimeStr = obj.getString("opentime");
+                        // if (!StringUtils.isNullOrEmpty(openTimeStr)) {
+                        //     try { saleDrawTime = java.sql.Timestamp.valueOf(openTimeStr.replace("T", " ").substring(0,19)); } catch (Exception ignore) {}
+                        // }
+
+                        long lotteryIdLong = 1L; // ← 替换为 jnd28 在你系统里的真实 lotteryId
+                        int pre = gameIssueDao.insertIssueIfAbsent(
+                                issue, lotteryIdLong, lastIssue, saleStartTime, saleEndTime, saleDrawTime
+                        );
+//                        logger.info("insertIssueIfAbsent issue={} lotteryId={} lastIssue={} start={} end={} draw={} rows={}",
+//                                issue, lotteryIdLong, lastIssue, saleStartTime, saleEndTime, saleDrawTime, pre);
+
+                        // 然后再执行开奖更新（你已经写好的逻辑）
+                        int rows = gameIssueDao.drawGameIssue(numberRecord, sumRecord, winRecord, issue);
+                        if (rows > 0) {
+                            redisTemplate.opsForValue().set(prizeKey, issue);
+//                            logger.info("saved issue={} (rows={}), code={}, sum={}, win={}",
+//                                    issue, rows, numberRecord, sumRecord, winRecord);
+                        } else {
+                            logger.warn("DB update returned 0 rows for issue={}, check pending row(issuestatus=2) & lastIssueCode/time fields.", issue);
+                        }
+
+                    } catch (Exception e) {
+                        logger.error("DB write failed for issue={}, skip redis update. err={}", issue, e.getMessage(), e);
+                        throw e; // 回滚事务
+                    }
                 }
 
             }
-
         } catch (Exception e) {
-            logger.error("getIssueNum [{}] for error[{}]  query >>> ending", sysIssueCode, e.getStackTrace());
+            logger.error("getIssueNum [{}] for error[{}]  query url[{}]", issue, e.getMessage(), reqUrl, e);
+            throw new BusinessException(ResponseCode.SERVER_ERROR);
         }
-
     }
 
     /**
@@ -122,9 +196,9 @@ public class GameIssueTask {
         String lotteryId = "1";
         HfGameIssueDO gim = gameOrderService.findcurIssue(lotteryId);
         if (null != gim) {
-            String issueCode = gim.getIssuecode();
+            String issueCode = gim.getIssueCode();
             //		String nextIssueCode = gim.getIssueCode();
-            Date saleEndTime = gim.getSaleendtime();
+            Date saleEndTime = gim.getSaleEndTime();
             String nextIssueCode = String.valueOf(Long.parseLong(issueCode) + 1);
             long saleEnd = saleEndTime.getTime();
             long nowTime = System.currentTimeMillis();
@@ -149,8 +223,8 @@ public class GameIssueTask {
         Object lockredis = redisTemplate.opsForValue().get(GameBetRedisKey.CAL_ISSUE_LOCK);
         if (null != gim && null == lockredis) {
             redisTemplate.opsForValue().set(GameBetRedisKey.CAL_ISSUE_LOCK, 1);
-            String issueCode = gim.getIssuecode();
-            String winRecord = gim.getWinrecord();
+            String issueCode = gim.getIssueCode();
+            String winRecord = gim.getWinRecord();
             String[] winRecords = winRecord.split("\\,");
             gameOrderDao.updateGameOrder(lotteryId, winRecords, issueCode);
             gameOrderDao.updateGameOrderByunprize(lotteryId, winRecords, issueCode);
@@ -291,7 +365,7 @@ public class GameIssueTask {
         Object lockredis = redisTemplate.opsForValue().get(GameBetRedisKey.SEND_ISSUE_LOCK);
         if (null != gim && null == lockredis) {
             redisTemplate.opsForValue().set(GameBetRedisKey.SEND_ISSUE_LOCK, 1);
-            String issueCode = gim.getIssuecode();
+            String issueCode = gim.getIssueCode();
             List<HfGameOrderDO> prizeOrderList = gameOrderDao.getSendIssue(lotteryId, issueCode,
                     GameOrderStatus.PRIZE.getValue());
             if (prizeOrderList != null) {

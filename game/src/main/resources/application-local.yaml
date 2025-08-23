@@ -96,7 +96,7 @@ logging:
 #    cn.iocoder.yudao.module.trade.dal.mysql: debug
 #    cn.iocoder.yudao.module.promotion.dal.mysql: debug
 
-debug: true
+debug: false
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
