@@ -1,6 +1,7 @@
 package org.example.game.game.controller;
 
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.config.satoken.StpPlayerUtil;
 import org.example.exception.BusinessException;
@@ -9,11 +10,14 @@ import org.example.game.game.enums.GameBetType;
 import org.example.game.game.enums.GamePlanStop;
 import org.example.game.game.enums.GamePlanType;
 import org.example.game.game.service.GameOrderService;
+import org.example.game.game.vo.GameBetItemReqVO;
+import org.example.game.game.vo.GameBetReqVO;
 import org.example.pojo.CommonResult;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,24 +45,46 @@ public class GameBetController {
         return CommonResult.success(gameOrderService.findcurIssue(lotteryId));
     }
 
+
     /**
      * xiazhu
      *
      * @return
      */
-    @RequestMapping(value = "/gameBet.do")
+    @PostMapping("/gameBet.do")
     @ResponseBody
-    public CommonResult gameBet(String issueCode, String lotteryId, Long totalAmount, Integer numberRecord) {
+    public CommonResult gameBet(@RequestBody GameBetReqVO req) {
+        String issueCode = req.getIssueCode();
+        String lotteryId = req.getLotteryId();
+        Long totalAmount = req.getTotalAmount();
+        List<GameBetItemReqVO> items = req.getGameItem();
 
         Assert.notNull(lotteryId, "彩种非法");
 
         Assert.notNull(issueCode, "期号非法");
 
-        Assert.notNull(numberRecord, "投注内容非法");
+        Assert.notEmpty(items, "投注内容非法");
 
-        Double preWinNum = GameBetType.getRate(numberRecord);
+        // 明细逐条校验 + 计算合计金额
+        long calcTotal = 0L;
+        for (int i = 0; i < items.size(); i++) {
+            GameBetItemReqVO it = items.get(i);
+            Assert.notNull(it, "投注内容非法");
+            Assert.notNull(it.getNumberRecord(), "第" + (i + 1) + "条投注号码为空");
+            Assert.notNull(it.getTotalAmount(),  "第" + (i + 1) + "条投注金额为空");
+            Assert.isTrue(it.getTotalAmount() > 0, "第" + (i + 1) + "条投注金额需 > 0");
+            calcTotal += it.getTotalAmount();
+        }
 
-        Assert.notNull(preWinNum, "投注内容非法");
+        // 与总金额做一致性校验（前端可能不传 totalAmount，则以计算值为准）
+        if (totalAmount == null) {
+            totalAmount = calcTotal;
+        } else {
+            Assert.isTrue(totalAmount.equals(calcTotal), "总金额与明细合计不一致");
+        }
+//        Double preWinNum = GameBetType.getRate(numberRecord);
+//
+//        Assert.notNull(preWinNum, "投注内容非法");
 
 //		if(StringUtils.isEmpty(gameName) || StringUtils.isEmpty(lotteryId) || StringUtils.isEmpty(issueCode)) {
 //			return CommonResult.success(ResponseCode.PARAM_STR_NOT_EMPTY);
@@ -79,7 +105,9 @@ public class GameBetController {
 
         try {
 
-            gameOrderService.gameBet(userId, issueCode, lotteryId, totalAmount, numberRecord, preWinNum);
+//            gameOrderService.gameBet(userId, issueCode, lotteryId, totalAmount, numberRecord, preWinNum);
+
+            gameOrderService.gameBet(userId, issueCode, lotteryId, totalAmount,items);
             return CommonResult.success("success");
 
         } catch (BusinessException e) {

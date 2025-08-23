@@ -6,10 +6,12 @@ import org.example.exception.BusinessException;
 import org.example.game.game.constants.FinanceFlowType;
 import org.example.game.game.constants.GameBetRedisKey;
 import org.example.game.game.constants.ResponseCode;
+import org.example.game.game.enums.GameBetType;
 import org.example.game.game.enums.GamePlanStop;
 import org.example.game.game.service.GameOrderService;
 import org.example.game.game.util.SimpleDateFormatUtil;
 import org.example.game.game.util.math.Arith;
+import org.example.game.game.vo.GameBetItemReqVO;
 import org.example.po.dream.dream.DreamUFinanceFlowDO;
 import org.example.po.dream.dream.DreamUFinanceMainDO;
 import org.example.po.dream.hf.HfGameIssueDO;
@@ -149,6 +151,95 @@ public class GameOrderServiceImpl implements GameOrderService {
 //      return retcode;
 
     }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void gameBet(Integer userId,
+                        String issueCode,
+                        String lotteryId,
+                        Long totalAmount,                         // 可为 null（则以后端合计为准）
+                        List<GameBetItemReqVO> items) {
+
+        // ===== 1) 用户与余额 =====
+        DreamUFinanceMainDO mainModel = mainDao.setectByUserId(Long.valueOf(userId));
+        if (mainModel == null) {
+            throw new BusinessException(ResponseCode.ERROR_CODE, "用户不存在");
+        }
+        BigDecimal moneyUsable = mainModel.getMoneyUsable();
+        BigDecimal cost = BigDecimal.valueOf(totalAmount);
+        if (moneyUsable.compareTo(cost) < 0) {
+            throw new BusinessException(ResponseCode.USER_MONEY_NOT_ENOUGH, "余额不足");
+        }
+
+        // ===== 2) 期号合法性 =====
+        HfGameIssueDO gim = findcurIssue(lotteryId);
+        String redisIssue = gim.getIssueCode(); // 注意：你的 DO 字段是 issuecode，小心 getter 名
+        long redisIssueInt = Long.parseLong(redisIssue);
+        long issueCodeInt  = Long.parseLong(issueCode);
+        if (issueCodeInt < redisIssueInt) {
+            throw new BusinessException(ResponseCode.BET_ISSUE_ERROR, "下注期号非法");
+        }
+
+        // ===== 3) 加分布式锁（资金并发安全） =====
+        LockInfo lock = lockTemplate.lock("finance_money:" + userId);
+        if (lock == null) {
+            throw new BusinessException(ResponseCode.LOCK_IS_BUSY, "业务繁忙中,请稍后再试");
+        }
+
+        logger.info("gameBet start: userId={}, issueCode={}, lotteryId={}, totalAmount={}, items={}",
+                userId, issueCode, lotteryId, totalAmount, items.size());
+
+        try {
+            // ===== 4) 生成订单（多条） =====
+            List<HfGameOrderDO> toSave = new java.util.ArrayList<>(items.size());
+            for (GameBetItemReqVO it : items) {
+                Integer nr = it.getNumberRecord();
+                Long    amt = it.getTotalAmount();
+
+                // 计算每条注项的赔率/预期（如果你的工具类只支持单个号码）
+                Double preWinNum = GameBetType.getRate(nr);  // ← 如果你已有 getRate(List<Integer>)，也可写在上层
+
+                HfGameOrderDO om = new HfGameOrderDO();
+                om.setIssuecode(issueCode);
+                om.setLotteryid(lotteryId);
+                om.setTotalamount(amt);
+                om.setNumberrecord(String.valueOf(nr));
+                om.setUserid(userId);
+                om.setPrewinnum(preWinNum);
+
+                toSave.add(om);
+            }
+            // 批量落库（如果没有批量方法，就循环 save）
+            hfGameOrderService.saveBatch(toSave);
+
+            // ===== 5) 扣减余额 =====
+            moneyUsable = moneyUsable.subtract(cost);
+            mainModel.setMoneyUsable(moneyUsable);
+            mainDao.update(mainModel);
+
+            // ===== 6) 资金流水（记一条总额流水） =====
+            DreamUFinanceFlowDO flowModel = new DreamUFinanceFlowDO();
+            flowModel.setUserId(Long.valueOf(userId));
+            flowModel.setType(FinanceFlowType.HF_BUY_GOODS.getType());
+            flowModel.setTypeDetail(FinanceFlowType.HF_BUY_GOODS.getTypeDetail());
+            flowModel.setRemark(FinanceFlowType.HF_BUY_GOODS.getRemark());
+            flowModel.setMoney(cost);
+            flowModel.setCOrderId(userId + "-buy-" + issueCode);  // 订单组号，可按需换为真正的订单号
+            flowModel.setMoneyLeft(moneyUsable);
+            flowDao.save(flowModel);
+
+            logger.info("gameBet success: userId={}, issueCode={}, totalAmount={}, moneyLeft={}",
+                    userId, issueCode, totalAmount, moneyUsable);
+
+        } catch (Exception e) {
+            logger.error("gameBet failed: userId={}, issueCode={}, err={}", userId, issueCode, e.getMessage(), e);
+            throw new BusinessException(ResponseCode.ERROR_CODE, "购买失败");
+        } finally {
+            lockTemplate.releaseLock(lock);
+        }
+    }
+
 
     @Override
     @Transactional(rollbackFor = {Exception.class})

@@ -1,6 +1,7 @@
 package org.example.game.game.service;
 
 
+import org.example.game.game.vo.GameBetItemReqVO;
 import org.example.po.dream.hf.HfGameIssueDO;
 import org.example.po.dream.hf.HfGameOrderDO;
 import org.example.po.dream.hf.HfGamePlanDO;
@@ -17,6 +18,8 @@ public interface GameOrderService {
 
 
     void gameBet(Integer userId, String issueCode, String lotteryId, Long totalAmount, Integer numberRecord, Double preWinNum);
+
+    void gameBet(Integer userId,  String issueCode, String lotteryId, Long totalAmount, List<GameBetItemReqVO> items);
 
     void gamePlan(Integer userId, String lotteryId, Integer planType, Integer numberRecord, String startIsuueCode, Integer startMutiple, Integer totalIssue, Integer issueRato, Integer winRate, Integer stopMode, Integer startAmount, long totamount, Double preWinNum);
 
